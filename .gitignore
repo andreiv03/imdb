@@ -1,8 +1,8 @@
-# Ignore Gradle project-specific cache directory
-.gradle
+# Gradle cache and wrapper files
+.gradle/
 
-# Ignore Gradle build output directory
-build
-
-# Ignore IntelliJ project-specific files
+# IntelliJ IDEA project settings
 .idea/
+
+# Compiled build output
+build/
