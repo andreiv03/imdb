@@ -1,10 +1,10 @@
 package org.imdb.strategies;
 
-import org.imdb.interfaces.ExperienceStrategy;
-
 public class RequestApprovalStrategy implements ExperienceStrategy {
-	@Override
-	public int calculateExperience() {
-		return 25;
-	}
+  private static final int REQUEST_APPROVAL_EXPERIENCE = 25;
+
+  @Override
+  public int getExperiencePoints() {
+    return REQUEST_APPROVAL_EXPERIENCE;
+  }
 }

@@ -1,7 +1,10 @@
 package org.imdb.exceptions;
 
-public class InformationIncompleteException extends Exception {
-	public InformationIncompleteException(String message) {
-		super(message);
-	}
+/**
+ * Exception thrown when required information is missing or incomplete.
+ */
+public class InformationIncompleteException extends RuntimeException {
+  public InformationIncompleteException(String message) {
+    super(message);
+  }
 }

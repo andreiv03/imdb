@@ -1,76 +1,57 @@
 package org.imdb.production;
 
-import org.imdb.IMDB;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import org.imdb.user.User;
+import org.imdb.utils.Database;
+import org.imdb.utils.JsonUtils;
 
+@Getter
+@Setter
 public class Rating implements Comparable<Rating> {
-	private String username;
-	private int rating;
-	private String comment;
-	private String productionTitle;
+  private String username;
+  private int rating;
+  private String comment;
+  private String productionTitle;
 
-	public Rating() {
-		this.username = null;
-		this.rating = 0;
-		this.comment = null;
-		this.productionTitle = null;
-	}
+  public Rating() {
+    this(null, 0, null);
+  }
 
-	public Rating(String username, int rating, String comment) {
-		this.username = username;
-		this.rating = rating;
-		this.comment = comment;
-		this.productionTitle = null;
-	}
+  public Rating(String username, int rating, String comment) {
+    this.username = username;
+    this.rating = rating;
+    this.comment = comment;
+    this.productionTitle = null;
+  }
 
-	public String getUsername() {
-		return username;
-	}
+  @Override
+  public String toString() {
+    return JsonUtils.toJson(this);
+  }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+  @Override
+  public int compareTo(@NonNull Rating other) {
+    Database database = Database.getInstance();
 
-	public int getRating() {
-		return rating;
-	}
+    User u1 = database.getUsers()
+      .stream()
+      .filter(user -> user.getUsername().equals(username))
+      .findFirst()
+      .orElse(null);
 
-	public void setRating(int rating) {
-		this.rating = rating;
-	}
+    User u2 = database.getUsers()
+      .stream()
+      .filter(user -> user.getUsername().equals(other.getUsername()))
+      .findFirst()
+      .orElse(null);
 
-	public String getComment() {
-		return comment;
-	}
+    if (u1 == null || u2 == null) {
+      return 0;
+    }
 
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
-
-	public String getProductionTitle() {
-		return productionTitle;
-	}
-
-	public void setProductionTitle(String productionTitle) {
-		this.productionTitle = productionTitle;
-	}
-
-	@Override
-	public String toString() {
-		return "{ username: \"" + username + "\", productionTitle: \"" + productionTitle + "\", rating: \"" + rating +
-				"\", comment: \"" + comment + "\" }";
-	}
-
-	@Override
-	public int compareTo(Rating rating) {
-		User userOne = IMDB.getInstance().getUsers().stream().filter(
-				user -> user.getUsername().equals(this.username)).findFirst().orElse(null);
-		User userTwo = IMDB.getInstance().getUsers().stream().filter(
-				user -> user.getUsername().equals(rating.getUsername())).findFirst().orElse(null);
-
-		if (userOne == null || userTwo == null)
-			return 0;
-
-		return Integer.parseInt(userTwo.getExperience()) - Integer.parseInt(userOne.getExperience());
-	}
+    return Integer.compare(Integer.parseInt(u2.getExperience()),
+      Integer.parseInt(u1.getExperience()));
+  }
 }

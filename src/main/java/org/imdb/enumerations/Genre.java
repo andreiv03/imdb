@@ -1,26 +1,18 @@
 package org.imdb.enumerations;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 public enum Genre {
-	Action,
-	Adventure,
-	Biography,
-	Comedy,
-	Cooking,
-	Crime,
-	Drama,
-	Fantasy,
-	Horror,
-	Mystery,
-	Romance,
-	SF,
-	Thriller,
-	War;
+  Action, Adventure, Biography, Comedy, Cooking, Crime, Drama, Fantasy, Horror, Mystery, Romance,
+	SF, Thriller, War;
 
-	public static boolean contains(String value) {
-		for (Genre genre : Genre.values())
-			if (genre.name().equals(value))
-				return true;
+  private static final Set<String> GENRE_NAMES = EnumSet.allOf(Genre.class)
+    .stream()
+    .map(Enum::name)
+    .collect(java.util.stream.Collectors.toSet());
 
-		return false;
-	}
+  public static boolean contains(String value) {
+    return value != null && GENRE_NAMES.contains(value.toUpperCase());
+  }
 }

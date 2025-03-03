@@ -1,10 +1,10 @@
 package org.imdb.strategies;
 
-import org.imdb.interfaces.ExperienceStrategy;
-
 public class ReviewAdditionStrategy implements ExperienceStrategy {
-	@Override
-	public int calculateExperience() {
-		return 5;
-	}
+  private static final int REVIEW_ADDITION_EXPERIENCE = 5;
+
+  @Override
+  public int getExperiencePoints() {
+    return REVIEW_ADDITION_EXPERIENCE;
+  }
 }

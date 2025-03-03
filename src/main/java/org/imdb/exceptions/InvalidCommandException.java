@@ -1,7 +1,10 @@
 package org.imdb.exceptions;
 
-public class InvalidCommandException extends Exception {
-	public InvalidCommandException(String message) {
-		super(message);
-	}
+/**
+ * Exception thrown when an invalid command is entered.
+ */
+public class InvalidCommandException extends RuntimeException {
+  public InvalidCommandException(String message) {
+    super(message);
+  }
 }

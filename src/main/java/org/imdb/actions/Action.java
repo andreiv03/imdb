@@ -6,29 +6,27 @@ import org.imdb.user.User;
 import java.util.Scanner;
 
 public abstract class Action {
-	public int getIntegerUserInput(int maximumNumberOfChoices) throws InvalidOptionException {
-		Scanner scanner = new Scanner(System.in);
+  private static final Scanner scanner = new Scanner(System.in);
 
-		System.out.print("Your option: ");
-		int option = scanner.hasNextInt() ? scanner.nextInt() : -1;
-		scanner.nextLine();
-		System.out.println();
+  public static int promptForIntInRange(int maximum) {
+    System.out.print("Enter your option: ");
+    int option = scanner.hasNextInt() ? scanner.nextInt() : -1;
+    scanner.nextLine();
+    System.out.println();
 
-		if (option < 1 || option > maximumNumberOfChoices)
-			throw new InvalidOptionException("Invalid option!");
+    if (option < 1 || option > maximum) {
+      throw new InvalidOptionException("Invalid option.");
+    }
 
-		return option;
-	}
+    return option;
+  }
 
-	public String getStringUserInput(String message) {
-		Scanner scanner = new Scanner(System.in);
+  public static String promptForString(String message) {
+    System.out.print(message);
+    String option = scanner.nextLine();
+    System.out.println();
+    return option;
+  }
 
-		System.out.print(message);
-		String option = scanner.nextLine();
-		System.out.println();
-
-		return option;
-	}
-
-	abstract public void execute(User currentUser);
+  abstract public void execute(User currentUser);
 }

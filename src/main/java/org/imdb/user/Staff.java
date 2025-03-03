@@ -1,64 +1,66 @@
 package org.imdb.user;
 
-import org.imdb.IMDB;
 import org.imdb.actor.Actor;
-import org.imdb.interfaces.StaffInterface;
 import org.imdb.production.Production;
+import org.imdb.utils.Database;
 
-import java.util.Optional;
+public class Staff extends User {
+  public Staff() {
+    super();
+  }
 
-public class Staff extends User implements StaffInterface {
-	public Staff() {
-		super();
-	}
+  public Staff(User user) {
+    super(user);
+  }
 
-	public Staff(User user) {
-		super(user);
-	}
+  public void addProductionSystem(Production production) {
+    if (production == null) {
+      throw new IllegalArgumentException("Production cannot be null.");
+    }
 
-	@Override
-	public void addProductionSystem(Production production) {
-		IMDB.getInstance().getProductions().add(production);
-	}
+    Database.getInstance().getProductions().add(production);
+  }
 
-	@Override
-	public void addActorSystem(Actor actor) {
-		IMDB.getInstance().getActors().add(actor);
-	}
+  public void addActorSystem(Actor actor) {
+    if (actor == null) {
+      throw new IllegalArgumentException("Actor cannot be null.");
+    }
 
-	@Override
-	public void removeProductionSystem(String title) {
-		IMDB.getInstance().getProductions().removeIf(production -> production.getTitle().equals(title));
-	}
+    Database.getInstance().getActors().add(actor);
+  }
 
-	@Override
-	public void removeActorSystem(String name) {
-		IMDB.getInstance().getActors().removeIf(actor -> actor.getName().equals(name));
-	}
+  public void removeProductionSystem(String title) {
+    Database.getInstance()
+      .getProductions()
+      .removeIf(production -> production.getTitle().equals(title));
+  }
 
-	@Override
-	public void updateProductionSystem(Production production) {
-		IMDB imdb = IMDB.getInstance();
+  public void removeActorSystem(String name) {
+    Database.getInstance().getActors().removeIf(actor -> actor.getName().equals(name));
+  }
 
-		Optional<Production> productionOptional = imdb.getProductions().stream().filter(
-				p -> p.getTitle().equals(production.getTitle())).findFirst();
+  public void updateProductionSystem(Production production) {
+    if (production == null) {
+      throw new IllegalArgumentException("Production cannot be null.");
+    }
 
-		productionOptional.ifPresent(p -> {
-			int index = imdb.getProductions().indexOf(p);
-			imdb.getProductions().set(index, production);
-		});
-	}
+    Database database = Database.getInstance();
+    database.getProductions().removeIf(p -> p.getTitle().equals(production.getTitle()));
+    database.getProductions().add(production);
+  }
 
-	@Override
-	public void updateActorSystem(Actor actor) {
-		IMDB imdb = IMDB.getInstance();
+  public void updateActorSystem(Actor actor) {
+    if (actor == null) {
+      throw new IllegalArgumentException("Actor cannot be null.");
+    }
 
-		Optional<Actor> actorOptional = imdb.getActors().stream().filter(
-				a -> a.getName().equals(actor.getName())).findFirst();
+    Database database = Database.getInstance();
+    database.getActors().removeIf(a -> a.getName().equals(actor.getName()));
+    database.getActors().add(actor);
+  }
 
-		actorOptional.ifPresent(a -> {
-			int index = imdb.getActors().indexOf(a);
-			imdb.getActors().set(index, actor);
-		});
-	}
+  @Override
+  public void receiveNotification(String notification) {
+    addNotification(notification);
+  }
 }

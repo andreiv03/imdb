@@ -2,13 +2,17 @@ package org.imdb.user;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Getter;
+import lombok.Setter;
 import org.imdb.actor.Actor;
 import org.imdb.enumerations.AccountType;
-import org.imdb.interfaces.ExperienceStrategy;
+import org.imdb.interfaces.Observer;
 import org.imdb.production.Production;
+import org.imdb.strategies.ExperienceStrategy;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 // @formatter:off
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "userType")
@@ -18,275 +22,167 @@ import java.util.ArrayList;
 		@JsonSubTypes.Type(value = Admin.class, name = "Admin")
 })
 // @formatter:on
-public abstract class User {
-	private String username;
-	private String experience;
-	private Information information;
-	private AccountType userType;
-	private ArrayList<String> productionsContribution;
-	private ArrayList<String> actorsContribution;
-	private ArrayList<String> favoriteProductions;
-	private ArrayList<String> favoriteActors;
-	private boolean isLoggedIn;
-	private ArrayList<String> notifications;
-	private ArrayList<String> reviewedProductions;
+@Getter
+@Setter
+public abstract class User implements Observer {
+  private final List<String> productionsContribution;
+  private final List<String> actorsContribution;
+  private final List<String> favoriteProductions;
+  private final List<String> favoriteActors;
+  private final List<String> notifications;
+  private final List<String> reviewedProductions;
+  private String username;
+  private Information information;
+  private AccountType userType;
+  private String experience;
+  private boolean loggedIn;
 
-	public User() {
-		this.username = null;
-		this.experience = null;
-		this.information = null;
-		this.userType = null;
-		this.productionsContribution = null;
-		this.actorsContribution = null;
-		this.favoriteProductions = null;
-		this.favoriteActors = null;
-		this.isLoggedIn = false;
-		this.notifications = new ArrayList<>();
-		this.reviewedProductions = new ArrayList<>();
-	}
+  public User() {
+    this(null, null, null, null, List.of(), List.of(), List.of(), List.of());
+  }
 
-	public User(String username, String experience, Information information, AccountType userType,
-	            ArrayList<String> productionsContribution, ArrayList<String> actorsContribution,
-	            ArrayList<String> favoriteProductions, ArrayList<String> favoriteActors) {
-		this.username = username;
-		this.experience = experience;
-		this.information = information;
-		this.userType = userType;
-		this.productionsContribution = productionsContribution;
-		this.actorsContribution = actorsContribution;
-		this.favoriteProductions = favoriteProductions;
-		this.favoriteActors = favoriteActors;
-		this.isLoggedIn = false;
-		this.notifications = new ArrayList<>();
-		this.reviewedProductions = new ArrayList<>();
-	}
+  public User(String username, String experience, Information information, AccountType userType,
+    List<String> productionsContribution, List<String> actorsContribution,
+    List<String> favoriteProductions, List<String> favoriteActors) {
+    this.username = username;
+    this.experience = (experience != null) ? experience : "0";
+    this.information = information;
+    this.userType = userType;
+    this.productionsContribution = productionsContribution;
+    this.actorsContribution = actorsContribution;
+    this.favoriteProductions = favoriteProductions;
+    this.favoriteActors = favoriteActors;
+    this.notifications = new ArrayList<>();
+    this.reviewedProductions = new ArrayList<>();
+    this.loggedIn = false;
+  }
 
-	public User(User user) {
-		this.username = user.username;
-		this.experience = user.experience;
-		this.information = user.information;
-		this.userType = user.userType;
-		this.productionsContribution = user.productionsContribution;
-		this.actorsContribution = user.actorsContribution;
-		this.favoriteProductions = user.favoriteProductions;
-		this.favoriteActors = user.favoriteActors;
-		this.isLoggedIn = user.isLoggedIn;
-		this.notifications = user.notifications;
-		this.reviewedProductions = user.reviewedProductions;
-	}
+  public User(User user) {
+    this(user.username, user.experience, user.information, user.userType,
+      user.productionsContribution, user.actorsContribution, user.favoriteProductions,
+      user.favoriteActors);
+    this.notifications.addAll(user.notifications);
+    this.reviewedProductions.addAll(user.reviewedProductions);
+    this.loggedIn = user.loggedIn;
+  }
 
-	public String getUsername() {
-		return username;
-	}
+  public String getExperience() {
+    if (userType == AccountType.ADMIN) {
+      return "INFINITE";
+    }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+    return experience;
+  }
 
-	public String getExperience() {
-		if (this.getUserType().equals(AccountType.Admin))
-			this.setExperience("INFINITE");
+  public void updateExperience(ExperienceStrategy experienceStrategy) {
+    if (userType == AccountType.ADMIN) {
+      return;
+    }
 
-		if (experience == null)
-			this.setExperience("0");
+    int experience = Integer.parseInt(this.experience) + experienceStrategy.getExperiencePoints();
+    this.experience = String.valueOf(experience);
+  }
 
-		return experience;
-	}
+  public void addProductionToFavorites(Production production) {
+    if (production == null) {
+      throw new IllegalArgumentException("Production cannot be null.");
+    }
 
-	public void setExperience(String experience) {
-		this.experience = experience;
-	}
+    favoriteProductions.add(production.getTitle());
+  }
 
-	public void updateExperience(ExperienceStrategy experienceStrategy) {
-		if (this.getUserType().equals(AccountType.Admin))
-			return;
+  public void removeProductionFromFavorites(Production production) {
+    favoriteProductions.removeIf(title -> title.equals(production.getTitle()));
+  }
 
-		this.experience = String.valueOf(Integer.parseInt(this.experience) + experienceStrategy.calculateExperience());
-	}
+  public void addActorToFavorites(Actor actor) {
+    if (actor == null) {
+      throw new IllegalArgumentException("Actor cannot be null.");
+    }
 
-	public Information getInformation() {
-		return information;
-	}
+    favoriteActors.add(actor.getName());
+  }
 
-	public void setInformation(Information information) {
-		this.information = information;
-	}
+  public void removeActorFromFavorites(Actor actor) {
+    favoriteActors.removeIf(name -> name.equals(actor.getName()));
+  }
 
-	public AccountType getUserType() {
-		return userType;
-	}
+  public void addNotification(String notification) {
+    if (notification == null) {
+      throw new IllegalArgumentException("Notification cannot be null.");
+    }
 
-	public void setUserType(AccountType userType) {
-		this.userType = userType;
-	}
+    notifications.add(notification);
+  }
 
-	public ArrayList<String> getProductionsContribution() {
-		return productionsContribution;
-	}
+  @Getter
+  public static class Information {
+    private final Credentials credentials;
+    private final String name;
+    private final String country;
+    private final int age;
+    private final String gender;
+    private final LocalDate birthDate;
 
-	public void setProductionsContribution(ArrayList<String> productionsContribution) {
-		this.productionsContribution = productionsContribution;
-	}
+    public Information() {
+      this.credentials = null;
+      this.name = null;
+      this.country = null;
+      this.age = 0;
+      this.gender = null;
+      this.birthDate = null;
+    }
 
-	public ArrayList<String> getActorsContribution() {
-		return actorsContribution;
-	}
+    private Information(InformationBuilder informationBuilder) {
+      this.credentials = informationBuilder.credentials;
+      this.name = informationBuilder.name;
+      this.country = informationBuilder.country;
+      this.age = informationBuilder.age;
+      this.gender = informationBuilder.gender;
+      this.birthDate = informationBuilder.birthDate;
+    }
 
-	public void setActorsContribution(ArrayList<String> actorsContribution) {
-		this.actorsContribution = actorsContribution;
-	}
+    public static class InformationBuilder {
+      private Credentials credentials;
+      private String name;
+      private String country;
+      private int age;
+      private String gender;
+      private LocalDate birthDate;
 
-	public ArrayList<String> getFavoriteProductions() {
-		return favoriteProductions;
-	}
+      public InformationBuilder credentials(Credentials credentials) {
+        this.credentials = credentials;
+        return this;
+      }
 
-	public void setFavoriteProductions(ArrayList<String> favoriteProductions) {
-		this.favoriteProductions = favoriteProductions;
-	}
+      public InformationBuilder name(String name) {
+        this.name = name;
+        return this;
+      }
 
-	public void addProductionToFavorites(Production production) {
-		favoriteProductions.add(production.getTitle());
-	}
+      public InformationBuilder country(String country) {
+        this.country = country;
+        return this;
+      }
 
-	public void removeProductionFromFavorites(Production production) {
-		favoriteProductions.remove(production.getTitle());
-	}
+      public InformationBuilder age(int age) {
+        this.age = age;
+        return this;
+      }
 
-	public ArrayList<String> getFavoriteActors() {
-		return favoriteActors;
-	}
+      public InformationBuilder gender(String gender) {
+        this.gender = gender;
+        return this;
+      }
 
-	public void setFavoriteActors(ArrayList<String> favoriteActors) {
-		this.favoriteActors = favoriteActors;
-	}
+      public InformationBuilder birthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
+        return this;
+      }
 
-	public void addActorToFavorites(Actor actor) {
-		favoriteActors.add(actor.getName());
-	}
-
-	public void removeActorFromFavorites(Actor actor) {
-		favoriteActors.remove(actor.getName());
-	}
-
-	public boolean getIsLoggedIn() {
-		return isLoggedIn;
-	}
-
-	public void setIsLoggedIn(boolean isLoggedIn) {
-		this.isLoggedIn = isLoggedIn;
-	}
-
-	public ArrayList<String> getNotifications() {
-		return notifications;
-	}
-
-	public void setNotifications(ArrayList<String> notifications) {
-		this.notifications = notifications;
-	}
-
-	public ArrayList<String> getReviewedProductions() {
-		return reviewedProductions;
-	}
-
-	public void setReviewedProductions(ArrayList<String> reviewedProductions) {
-		this.reviewedProductions = reviewedProductions;
-	}
-
-	public void logout() {
-		setIsLoggedIn(false);
-	}
-
-	public static class Information {
-		private final Credentials credentials;
-		private final String name;
-		private final String country;
-		private final int age;
-		private final String gender;
-		private final LocalDate birthDate;
-
-		public Information() {
-			this.credentials = null;
-			this.name = null;
-			this.country = null;
-			this.age = 0;
-			this.gender = null;
-			this.birthDate = null;
-		}
-
-		private Information(InformationBuilder informationBuilder) {
-			this.credentials = informationBuilder.credentials;
-			this.name = informationBuilder.name;
-			this.country = informationBuilder.country;
-			this.age = informationBuilder.age;
-			this.gender = informationBuilder.gender;
-			this.birthDate = informationBuilder.birthDate;
-		}
-
-		public Credentials getCredentials() {
-			return credentials;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public String getCountry() {
-			return country;
-		}
-
-		public int getAge() {
-			return age;
-		}
-
-		public String getGender() {
-			return gender;
-		}
-
-		public LocalDate getBirthDate() {
-			return birthDate;
-		}
-
-		public static class InformationBuilder {
-			private Credentials credentials;
-			private String name;
-			private String country;
-			private int age;
-			private String gender;
-			private LocalDate birthDate;
-
-			public Information build() {
-				return new Information(this);
-			}
-
-			public InformationBuilder setCredentials(Credentials credentials) {
-				this.credentials = credentials;
-				return this;
-			}
-
-			public InformationBuilder setName(String name) {
-				this.name = name;
-				return this;
-			}
-
-			public InformationBuilder setCountry(String country) {
-				this.country = country;
-				return this;
-			}
-
-			public InformationBuilder setAge(int age) {
-				this.age = age;
-				return this;
-			}
-
-			public InformationBuilder setGender(String gender) {
-				this.gender = gender;
-				return this;
-			}
-
-			public InformationBuilder setBirthDate(LocalDate birthDate) {
-				this.birthDate = birthDate;
-				return this;
-			}
-		}
-	}
+      public Information build() {
+        return new Information(this);
+      }
+    }
+  }
 }

@@ -1,10 +1,11 @@
 package org.imdb.strategies;
 
-import org.imdb.interfaces.ExperienceStrategy;
-
 public class ProductionAdditionStrategy implements ExperienceStrategy {
-	@Override
-	public int calculateExperience() {
-		return 15;
-	}
+  private static final int PRODUCTION_ADDITION_EXPERIENCE = 15;
+
+
+  @Override
+  public int getExperiencePoints() {
+    return PRODUCTION_ADDITION_EXPERIENCE;
+  }
 }

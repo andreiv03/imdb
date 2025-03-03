@@ -1,7 +1,10 @@
 package org.imdb.exceptions;
 
-public class InvalidOptionException extends Exception {
-	public InvalidOptionException(String message) {
-		super(message);
-	}
+/**
+ * Exception thrown when an invalid option is selected.
+ */
+public class InvalidOptionException extends RuntimeException {
+  public InvalidOptionException(String message) {
+    super(message);
+  }
 }

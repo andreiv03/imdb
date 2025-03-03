@@ -1,16 +1,19 @@
 package org.imdb.production;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.imdb.IMDB;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import org.imdb.enumerations.Genre;
 import org.imdb.interfaces.Observer;
 import org.imdb.interfaces.Subject;
-import org.imdb.user.Regular;
-import org.imdb.user.Staff;
 import org.imdb.user.User;
+import org.imdb.utils.Database;
 
 import java.util.ArrayList;
+import java.util.List;
 
 // @formatter:off
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
@@ -19,161 +22,76 @@ import java.util.ArrayList;
 		@JsonSubTypes.Type(value = Series.class, name = "Series")
 })
 // @formatter:on
-public abstract class Production implements Comparable<Production>, Subject {
-	private final ArrayList<Observer> observers = new ArrayList<>();
-	protected String title;
-	protected String type;
-	protected ArrayList<String> directors;
-	protected ArrayList<String> actors;
-	protected ArrayList<Genre> genres;
-	protected ArrayList<Rating> ratings;
-	protected String plot;
-	protected double averageRating;
-	protected String responsible;
+@Getter
+@Setter
+public abstract class Production implements Comparable<Production>, Subject<User> {
+  @JsonIgnore
+  private final List<User> observers = new ArrayList<>();
+  protected String title;
+  protected String type;
+  protected List<String> directors;
+  protected List<String> actors;
+  protected List<Genre> genres;
+  protected List<Rating> ratings;
+  protected String plot;
+  protected double averageRating;
+  protected String responsible;
 
-	public Production() {
-		this.title = null;
-		this.type = null;
-		this.directors = null;
-		this.actors = null;
-		this.genres = null;
-		this.ratings = null;
-		this.plot = null;
-		this.averageRating = 0;
-		this.responsible = "ADMIN";
-	}
+  public Production() {
+    this(null, null, null, 0);
+  }
 
-	public Production(String title, String type, ArrayList<String> directors, ArrayList<String> actors,
-	                  ArrayList<Genre> genres, ArrayList<Rating> ratings, String plot, double averageRating) {
-		this.title = title;
-		this.type = type;
-		this.directors = directors;
-		this.actors = actors;
-		this.genres = genres;
-		this.ratings = ratings;
-		this.plot = plot;
-		this.averageRating = averageRating;
-		this.responsible = "ADMIN";
+  public Production(String title, String type, String plot, double averageRating) {
+    this.title = title;
+    this.type = type;
+    this.directors = new ArrayList<>();
+    this.actors = new ArrayList<>();
+    this.genres = new ArrayList<>();
+    this.ratings = new ArrayList<>();
+    this.plot = plot;
+    this.averageRating = averageRating;
+    this.responsible = "ADMIN";
 
-		for (Rating rating : this.getRatings()) {
-			rating.setProductionTitle(this.title);
+    initializeObservers();
+  }
 
-			for (User user : IMDB.getInstance().getUsers())
-				if (user.getUsername().equals(rating.getUsername()))
-					this.registerObserver((Observer) user);
-		}
-	}
+  private void initializeObservers() {
+    for (Rating rating : ratings) {
+      rating.setProductionTitle(title);
 
-	public String getTitle() {
-		return title;
-	}
+      for (User user : Database.getInstance().getUsers()) {
+        if (user.getUsername().equals(rating.getUsername())) {
+          registerObserver(user);
+        }
+      }
+    }
+  }
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+  @Override
+  public int compareTo(@NonNull Production other) {
+    return title.compareToIgnoreCase(other.title);
+  }
 
-	public String getType() {
-		return type;
-	}
+  @Override
+  public void registerObserver(User observer) {
+    if (observer == null || observers.contains(observer)) {
+      throw new IllegalArgumentException("Observer is null or already registered.");
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    observers.add(observer);
+  }
 
-	public ArrayList<String> getDirectors() {
-		return directors;
-	}
+  @Override
+  public void removeObserver(User observer) {
+    observers.remove(observer);
+  }
 
-	public void setDirectors(ArrayList<String> directors) {
-		this.directors = directors;
-	}
+  @Override
+  public void notifyObservers() {
+    String message = String.format("The production \"%s\" has just received a new review.", title);
 
-	public ArrayList<String> getActors() {
-		return actors;
-	}
-
-	public void setActors(ArrayList<String> actors) {
-		this.actors = actors;
-	}
-
-	public ArrayList<Genre> getGenres() {
-		return genres;
-	}
-
-	public void setGenres(ArrayList<Genre> genres) {
-		this.genres = genres;
-	}
-
-	public ArrayList<Rating> getRatings() {
-		return ratings;
-	}
-
-	public void setRatings(ArrayList<Rating> ratings) {
-		this.ratings = ratings;
-
-		for (Rating rating : this.getRatings()) {
-			rating.setProductionTitle(this.title);
-
-			for (User user : IMDB.getInstance().getUsers())
-				if (user.getUsername().equals(rating.getUsername()))
-					this.registerObserver((Observer) user);
-		}
-	}
-
-	public String getPlot() {
-		return plot;
-	}
-
-	public void setPlot(String plot) {
-		this.plot = plot;
-	}
-
-	public double getAverageRating() {
-		return averageRating;
-	}
-
-	public void setAverageRating(double averageRating) {
-		this.averageRating = averageRating;
-	}
-
-	public String getResponsible() {
-		return responsible;
-	}
-
-	public void setResponsible(String responsible) {
-		this.responsible = responsible;
-	}
-
-	public abstract void displayInfo();
-
-	@Override
-	public int compareTo(Production production) {
-		return this.title.compareTo(production.title);
-	}
-
-	@Override
-	public void registerObserver(Observer observer) {
-		if (!observers.contains(observer))
-			observers.add(observer);
-	}
-
-	@Override
-	public void removeObserver(Observer observer) {
-		observers.remove(observer);
-	}
-
-	@Override
-	public void notifyObservers() {
-		for (Observer observer : observers) {
-			if (observer instanceof Regular)
-				observer.receiveNotification(
-						"The production \"" + this.title + "\" you reviewed just received a new review from another " +
-								"user!");
-
-			if (observer instanceof Staff)
-				observer.receiveNotification(
-						"The production \"" + this.title + "\" you are responsible for just received a new review from" +
-								" a user!");
-		}
-	}
+    for (Observer observer : observers) {
+      observer.receiveNotification(message);
+    }
+  }
 }
