@@ -1,101 +1,103 @@
 package org.imdb.actions;
 
-import org.imdb.IMDB;
 import org.imdb.actor.Actor;
-import org.imdb.exceptions.InvalidOptionException;
 import org.imdb.production.Production;
 import org.imdb.user.User;
 import org.imdb.utils.Database;
 
 import java.util.List;
+import java.util.Optional;
 
 public class AddDeleteFavoritesAction extends Action {
   @Override
   public void execute(User currentUser) {
-    try {
-      IMDB imdb = IMDB.getInstance();
-      List<String> favoriteActors = currentUser.getFavoriteActors();
-      List<String> favoriteProductions = currentUser.getFavoriteProductions();
+    List<String> favoriteActors = currentUser.getFavoriteActors();
+    List<String> favoriteProductions = currentUser.getFavoriteProductions();
 
-      System.out.println("Favorites:");
-      System.out.println("\tActors: " + (favoriteActors != null ? favoriteActors : "[]"));
-      System.out.println("\tProductions: " + (favoriteProductions != null ? favoriteProductions :
-        "[]"));
-      System.out.println();
+    System.out.println("Favorites:");
+    System.out.printf("\tActors: %s%n", favoriteActors);
+    System.out.printf("\tProductions: %s%n%n", favoriteProductions);
 
-      System.out.println("What do you want to do?");
-      System.out.println("\t1) Add");
-      System.out.println("\t2) Delete");
-      System.out.println("\t3) Exit");
+    System.out.println("What do you want to do?");
+    System.out.println("\t1) Add");
+    System.out.println("\t2) Delete");
+    System.out.println("\t3) Exit");
 
-      int action = promptForIntInRange(3);
+    int action = promptForIntInRange("option", 3);
+    if (action == 3) {
+      return;
+    }
 
-      if (action == 3)
-        return;
+    System.out.printf("What do you want to %s?%n", action == 1 ? "add" : "delete");
+    System.out.println("\t1) Actor");
+    System.out.println("\t2) Production");
+    System.out.println("\t3) Exit");
 
-      System.out.println("What do you want to " + (action == 1 ? "add" : "delete") + "?");
-      System.out.println("\t1) Actor");
-      System.out.println("\t2) Production");
-      System.out.println("\t3) Exit");
+    int item = promptForIntInRange("option", 3);
+    if (item == 3) {
+      return;
+    }
 
-      int choice = promptForIntInRange(3);
+    String name = promptForString("Enter the name: ");
 
-      if (choice == 3)
-        return;
+    if (item == 1) {
+      modifyFavoriteActors(currentUser, name, action == 1);
+    }
 
-      String name = promptForString("Enter the name: ");
+    if (item == 2) {
+      modifyFavoriteProductions(currentUser, name, action == 1);
+    }
+  }
 
-      switch (choice) {
-        case 1:
-          if (action == 1 && favoriteActors != null && favoriteActors.contains(name)) {
-            System.out.println("Actor already in favorites!");
-            System.out.println();
-            return;
-          }
+  private void modifyFavoriteActors(User currentUser, String name, boolean isAdding) {
+    List<String> favoriteActors = currentUser.getFavoriteActors();
 
-          for (Actor actor : Database.getInstance().getActors()) {
-            if (actor.getName().equals(name)) {
-              if (action == 1) {
-                currentUser.addActorToFavorites(actor);
-                return;
-              }
+    if (isAdding && favoriteActors != null && favoriteActors.contains(name)) {
+      System.out.printf("Actor is already in favorites.%n%n");
+      return;
+    }
 
-              currentUser.removeActorFromFavorites(actor);
-              return;
-            }
-          }
+    Optional<Actor> actor = Database.getInstance()
+      .getActors()
+      .stream()
+      .filter(a -> a.getName().equalsIgnoreCase(name))
+      .findFirst();
 
-          System.out.println("Actor not found!");
-          System.out.println();
-          break;
+    if (actor.isEmpty()) {
+      System.out.printf("Actor not found.%n%n");
+      return;
+    }
 
-        case 2:
-          if (action == 1 && favoriteProductions != null && favoriteProductions.contains(name)) {
-            System.out.println("Production already in favorites!");
-            System.out.println();
-            return;
-          }
+    if (isAdding) {
+      currentUser.addActorToFavorites(actor.get());
+    } else {
+      currentUser.removeActorFromFavorites(actor.get());
+    }
+  }
 
-          for (Production production : Database.getInstance().getProductions()) {
-            if (production.getTitle().equals(name)) {
-              if (action == 1) {
-                currentUser.addProductionToFavorites(production);
-                return;
-              }
+  private void modifyFavoriteProductions(User currentUser, String name, boolean isAdding) {
+    List<String> favoriteProductions = currentUser.getFavoriteProductions();
 
-              currentUser.removeProductionFromFavorites(production);
-              return;
-            }
-          }
+    if (isAdding && favoriteProductions != null && favoriteProductions.contains(name)) {
+      System.out.printf("Production is already in favorites.%n%n");
+      return;
+    }
 
-          System.out.println("Production not found!");
-          System.out.println();
-          break;
-      }
-    } catch (InvalidOptionException exception) {
-      System.out.println(exception.getMessage());
-      System.out.println();
-    } catch (Exception ignored) {
+    Optional<Production> production = Database.getInstance()
+      .getProductions()
+      .stream()
+      .filter(p -> p.getTitle().equalsIgnoreCase(name))
+      .findFirst();
+
+    if (production.isEmpty()) {
+      System.out.printf("Production not found.%n%n");
+      return;
+    }
+
+    if (isAdding) {
+      currentUser.addProductionToFavorites(production.get());
+    } else {
+      currentUser.removeProductionFromFavorites(production.get());
     }
   }
 }

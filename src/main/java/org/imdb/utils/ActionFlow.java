@@ -42,7 +42,7 @@ public class ActionFlow {
     addAction("Add/Delete actor/movie/series from system", CONTRIBUTOR, ADMIN);
     addAction("View/Solve request", CONTRIBUTOR, ADMIN);
     addAction("Update actor/movie/series details", CONTRIBUTOR, ADMIN);
-    addAction("Add/Delete review to/from actor/movie/series", REGULAR);
+    addAction("Add/Delete review to/from movie/series", REGULAR);
     addAction("Add/Delete user from system", ADMIN);
     addAction("Logout", REGULAR, CONTRIBUTOR, ADMIN);
   }
@@ -75,7 +75,7 @@ public class ActionFlow {
   public static boolean startFlow(User currentUser) {
     while (currentUser.isLoggedIn()) {
       Map<Integer, Integer> actionMap = displayActions(currentUser);
-      int action = Action.promptForIntInRange(ACTIONS.size());
+      int action = Action.promptForIntInRange("option", ACTIONS.size());
 
       if (!actionMap.containsKey(action)) {
         throw new InvalidCommandException("Invalid command.");

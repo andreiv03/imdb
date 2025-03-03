@@ -18,10 +18,10 @@ import static org.imdb.utils.JsonUtils.readArrayFromJson;
 public class Database {
   private static volatile Database instance = null;
 
-  private List<User> users = List.of();
-  private List<Actor> actors = List.of();
-  private List<Production> productions = List.of();
-  private List<Request> requests = List.of();
+  private List<User> users;
+  private List<Actor> actors;
+  private List<Production> productions;
+  private List<Request> requests;
 
   private Database() {
     if (instance != null) {
@@ -51,13 +51,13 @@ public class Database {
       users.forEach(this::assignContributions);
     }
 
-    //    if (!productions.isEmpty()) {
-    //      productions.forEach(this::processProductionData);
-    //    }
+    if (!productions.isEmpty()) {
+      productions.forEach(this::processProductionData);
+    }
 
     if (!requests.isEmpty()) {
       requests.stream()
-        .filter(request -> "ADMIN".equals(request.getTo()))
+        .filter(request -> request.getTo().equals("ADMIN"))
         .forEach(RequestsHolder::addRequest);
     }
   }
@@ -112,9 +112,12 @@ public class Database {
   }
 
   private void updateUserReviewedProductions(Production production) {
-    production.getRatings()
-      .forEach(rating -> users.stream()
+    production.getRatings().forEach(rating -> {
+      users.stream()
         .filter(user -> user.getUsername().equals(rating.getUsername()))
-        .forEach(user -> user.getReviewedProductions().add(production.getTitle())));
+        .forEach(user -> user.getReviewedProductions().add(rating));
+
+      rating.setProductionTitle(production.getTitle());
+    });
   }
 }

@@ -35,6 +35,7 @@ public abstract class Production implements Comparable<Production>, Subject<User
   protected List<Rating> ratings;
   protected String plot;
   protected double averageRating;
+  @JsonIgnore
   protected String responsible;
 
   public Production() {

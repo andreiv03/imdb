@@ -7,7 +7,6 @@ import lombok.Setter;
 import org.imdb.utils.JsonUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -28,10 +27,6 @@ public class Actor implements Comparable<Actor> {
     this.performances = new ArrayList<>();
     this.biography = biography;
     this.responsible = "ADMIN";
-  }
-
-  public List<Performance> getPerformances() {
-    return Collections.unmodifiableList(performances);
   }
 
   @Override

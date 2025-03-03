@@ -8,6 +8,7 @@ import org.imdb.actor.Actor;
 import org.imdb.enumerations.AccountType;
 import org.imdb.interfaces.Observer;
 import org.imdb.production.Production;
+import org.imdb.production.Rating;
 import org.imdb.strategies.ExperienceStrategy;
 
 import java.time.LocalDate;
@@ -30,7 +31,7 @@ public abstract class User implements Observer {
   private final List<String> favoriteProductions;
   private final List<String> favoriteActors;
   private final List<String> notifications;
-  private final List<String> reviewedProductions;
+  private final List<Rating> reviewedProductions;
   private String username;
   private Information information;
   private AccountType userType;

@@ -16,14 +16,14 @@ public class Rating implements Comparable<Rating> {
   private String productionTitle;
 
   public Rating() {
-    this(null, 0, null);
+    this(null, 0, null, null);
   }
 
-  public Rating(String username, int rating, String comment) {
+  public Rating(String username, int rating, String comment, String productionTitle) {
     this.username = username;
     this.rating = rating;
     this.comment = comment;
-    this.productionTitle = null;
+    this.productionTitle = productionTitle;
   }
 
   @Override

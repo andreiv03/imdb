@@ -78,7 +78,7 @@ public class Auth {
     System.out.println("\t1) Log in again");
     System.out.println("\t2) Exit");
 
-    int action = Action.promptForIntInRange(2);
+    int action = Action.promptForIntInRange("option", 2);
     return action == 1;
   }
 }

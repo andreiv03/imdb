@@ -2,23 +2,23 @@ package org.imdb.actions;
 
 import org.imdb.user.User;
 
+import java.util.List;
+
 public class ViewNotificationsAction extends Action {
-	@Override
-	public void execute(User currentUser) {
-		try {
-			System.out.println("Notifications:");
+  @Override
+  public void execute(User currentUser) {
+    List<String> notifications = currentUser.getNotifications();
+    System.out.println("Notifications:");
 
-			if (currentUser.getNotifications() == null || currentUser.getNotifications().isEmpty()) {
-				System.out.println("You have no notifications!");
-				System.out.println();
-				return;
-			}
+    if (notifications == null || notifications.isEmpty()) {
+      System.out.printf("You have no notifications.%n%n");
+      return;
+    }
 
-			for (String notification : currentUser.getNotifications())
-				System.out.println((currentUser.getNotifications().indexOf(notification) + 1) + ") " + notification);
+    for (int index = 0; index < notifications.size(); index++) {
+      System.out.printf("%d) %s%n", index + 1, notifications.get(index));
+    }
 
-			System.out.println();
-		} catch (Exception ignored) {
-		}
-	}
+    System.out.println();
+  }
 }
